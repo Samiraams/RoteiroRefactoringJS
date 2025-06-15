@@ -1,12 +1,12 @@
 const { readFileSync } = require('fs');
 
-  // função extraída
+
 function formatarMoeda(valor) {
   return new Intl.NumberFormat("pt-BR",
     { style: "currency", currency: "BRL",
       minimumFractionDigits: 2 }).format(valor/100);
 }
-// função extraída
+
 function calcularCredito(pecas, apre) {
   let creditos = 0;
   creditos += Math.max(apre.audiencia - 30, 0);
@@ -15,11 +15,11 @@ function calcularCredito(pecas, apre) {
   return creditos;   
 }
 
-  // função query
+ 
 function getPeca(pecas, apre)  {
   return pecas[apre.id];
 }
-// função extraída
+
 function calcularTotalApresentacao(pecas, apre) {
   let total = 0;
   switch (getPeca(pecas, apre).tipo) {
@@ -64,7 +64,24 @@ function gerarFaturaStr (fatura, pecas) {
   return faturaStr;
   }
 
+function gerarFaturaHTML(fatura, pecas) {
+  let html = `<html>\n<p> Fatura ${fatura.cliente} </p>\n<ul>\n`;
+  for (let apre of fatura.apresentacoes) {
+    html += `<li>  ${getPeca(pecas, apre).nome}: `
+          + `${formatarMoeda(calcularTotalApresentacao(pecas, apre))} `
+          + `(${apre.audiencia} assentos) </li>\n`;
+  }
+  html += `</ul>\n<p> Valor total: `
+        + `${formatarMoeda(calcularTotalFatura(pecas, fatura.apresentacoes))} </p>\n`;
+  html += `<p> Créditos acumulados: `
+        + `${calcularTotalCreditos(pecas, fatura.apresentacoes)} </p>\n</html>`;
+  return html;
+}
+
+
+
 const faturas = JSON.parse(readFileSync('./faturas.json'));
 const pecas = JSON.parse(readFileSync('./pecas.json'));
 const faturaStr = gerarFaturaStr(faturas, pecas);
 console.log(faturaStr);
+console.log(gerarFaturaHTML(faturas, pecas));
